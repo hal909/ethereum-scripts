@@ -1,7 +1,7 @@
 /**
  * PRIVATE_KEY={private_key} node lib/timelock_deploy.js "{network}"
  */
-
+require("@babel/register");
 import { ethers, providers } from 'ethers'
 import { TrustToken } from '../abi/TrustToken'
 
@@ -12,7 +12,7 @@ async function truFaucet() {
     // set provider from infura & network
     const provider = new providers.InfuraProvider(
         process.argv[2], 'e33335b99d78415b82f8b9bc5fdc44c0')
-    
+
     // use private key for wallet
     const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider)
 
