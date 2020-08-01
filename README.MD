@@ -14,3 +14,7 @@ PRIVATE_KEY={private_key} yarn faucet
 ## Gas Farm
 
 `PRIVATE_KEY={private_key} yarn gasfarm`
+
+# Using the utiils.ts  
+write transaction: await wait(...)
+read transaction:  await ...
