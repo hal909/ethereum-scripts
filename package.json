@@ -1,0 +1,15 @@
+{
+  "name": "ethereum-scripts",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^14.0.27",
+    "ethers": "^5.0.7",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
+  },
+  "scripts": {
+    "faucet": "ts-node scripts/tru_faucet.ts"
+  }
+}
