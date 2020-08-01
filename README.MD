@@ -20,7 +20,7 @@ PRIVATE_KEY={private_key} yarn faucet
 **async & wait**  
 We can use the wait() function to wait for a transaction to complete:
   
-write transaction: `await wait(...)`
+write transaction: `await wait(...)`  
 read transaction:  `await ...`  
 
 **interacting with a smart contract**  
