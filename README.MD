@@ -15,12 +15,7 @@ Any script can be run this way:
 
 PRIVATE_KEY={private_key} yarn faucet
 
-## Gas Farm  
-
-`PRIVATE_KEY={private_key} yarn gasfarm`
-
-
-# Using the utiils.ts
+# Using utiils.ts
 
 **async & wait**  
 We can use the wait() function to wait for a transaction to complete:
