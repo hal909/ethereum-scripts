@@ -23,7 +23,7 @@ We can use the wait() function to wait for a transaction to complete:
 write transaction: `await wait(...)`
 read transaction:  `await ...`  
 
-**interacting with a smart contract**
+**interacting with a smart contract** 
 First get the bytecode for a contract and save it as {contract_name].json file
 You can use `contractAt({contract_name}, {contract_address})` to get the Contract object
 
