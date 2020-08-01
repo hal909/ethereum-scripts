@@ -8,7 +8,8 @@ This repo has some useful scripts for interacting with TrustToken smart contract
 Any script can be run this way:
 `PRIVATE_KEY={private_key} ts-node scripts/{script_name}`
 
-*getting testnet TRU*
+**getting testnet TRU**  
+
 PRIVATE_KEY={private_key} yarn faucet
 
 ## Gas Farm
