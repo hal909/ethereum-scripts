@@ -7,10 +7,17 @@ import { createObjectCsvWriter } from 'csv-writer'
 
 const parseEther = utils.parseEther
 const fromEther = utils.formatEther
+
+// TRU has 8 decimals of precision
 const fromTrustToken = (amount: ethers.BigNumber) => fromEther(amount.mul(1e10))
 
+// wait function for contract writes
 const wait = async <T>(tx: Promise<{wait: () => Promise<T>}>): Promise<T> => (await tx).wait()
+
+// 1000 TRU
 const TRU1000 = parseEther('1000').div(1e10)
+
+// start block for event logging
 const START_BLOCK = 10523380
 
 async function truFaucet () {
@@ -44,13 +51,8 @@ async function truFaucet () {
   let balance = await trusttoken.balanceOf(wallet.address)
   console.log(`\nTRU Balance of wallet: ${balance}`)
 
+  // log events
   await logEvents(provider, TrustToken, TimeLockRegistry)
-  // const faucet = await wait(trusttoken.faucet(wallet.address, TRU1000, txnArgs))
-  // console.log(faucet)
-
-  // get balance after
-  // balance = await trusttoken.balanceOf(wallet.address)
-  // console.log(`balance after: ${balance}`)
 }
 
 async function logEvents (provider, TrustToken, TimeLockRegistry) {
