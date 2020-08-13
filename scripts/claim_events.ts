@@ -18,7 +18,9 @@ const wait = async <T>(tx: Promise<{wait: () => Promise<T>}>): Promise<T> => (aw
 const TRU1000 = parseEther('1000').div(1e10)
 
 // start block for event logging
-const START_BLOCK = 10523380
+// 10523380 before contract deployed
+// 10646595 second round
+const START_BLOCK = 10646595
 
 async function truFaucet () {
   // transaction arguments
