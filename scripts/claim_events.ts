@@ -20,7 +20,7 @@ const TRU1000 = parseEther('1000').div(1e10)
 // start block for event logging
 // 10523380 before contract deployed
 // 10646595 second round
-const START_BLOCK = 10646595
+const START_BLOCK = 10523380
 
 async function truFaucet () {
   // transaction arguments
@@ -37,8 +37,14 @@ async function truFaucet () {
   const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider)
 
   // mainnet address
-  const trustTokenProxyAddress = '0x4C19596f5aAfF459fA38B0f7eD92F11AE6543784'
-  const timeLockRegistryProxyAddress = '0x5Fe2F5F2Cc97887746C5cB44386A94061F35DcC4'
+  let trustTokenProxyAddress = '0x4C19596f5aAfF459fA38B0f7eD92F11AE6543784'
+  let timeLockRegistryProxyAddress = '0x5Fe2F5F2Cc97887746C5cB44386A94061F35DcC4'
+  
+  if (network == 'ropsten') {
+    trustTokenProxyAddress = '0x711161BaF6fA362Fa41F80aD2295F1f601b44f3F'
+    timeLockRegistryProxyAddress = '0xa9Fe04F164DF0C75F9A9F67994Ba91Abb9932633'
+  }
+  
 
   // Use wallet to get contract
   const contractAt = getContract(wallet)
@@ -52,6 +58,10 @@ async function truFaucet () {
   // get balance
   let balance = await trusttoken.balanceOf(wallet.address)
   console.log(`\nTRU Balance of wallet: ${balance}`)
+
+  const registry = await TimeLockRegistry.connect(wallet.address)
+  let registeredAmount = await registry.registeredDistributions(wallet.address)
+  console.log("registered claim amount: ", fromTrustToken(registeredAmount))
 
   // log events
   await logEvents(provider, TrustToken, TimeLockRegistry)

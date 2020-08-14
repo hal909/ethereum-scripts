@@ -1,5 +1,5 @@
 /**
- * PRIVATE_KEY={private_key} node lib/timelock_deploy.js "{network}"
+ * PRIVATE_KEY={private_key} node scripts/tru_faucet.js "{network}"
  */
 import { ethers, providers, utils } from 'ethers'
 import { getContract } from './utils'
