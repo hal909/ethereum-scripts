@@ -1,5 +1,5 @@
 /**
- * PRIVATE_KEY={private_key} node lib/timelock_deploy.js '{network}'
+ * PRIVATE_KEY={private_key} ts-node scripts/gas_farm.ts '{network}'
  * GAS FARM (WIP)
  *
  *
