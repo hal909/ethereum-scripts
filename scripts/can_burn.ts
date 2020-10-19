@@ -4,6 +4,7 @@
 import { ethers, providers, utils } from 'ethers'
 import { getContract } from './utils'
 import { createObjectCsvWriter } from 'csv-writer'
+import { canBurnFinal } from './can_burn_final'
 
 const parseEther = utils.parseEther
 const fromEther = utils.formatEther
@@ -16,16 +17,18 @@ const wait = async <T>(tx: Promise<{wait: () => Promise<T>}>): Promise<T> => (aw
 
 // start block for event logging
 // 10719646 before contract upgrades
-const START_BLOCK = 10719646
+// const START_BLOCK = 10719646
+const START_BLOCK = 6906592 // registry deployment
 
 // Smart Contract Addresses
 const registryProxyAddress = '0x0000000000013949F288172bD7E36837bDdC7211'
-const trueHKDAddress = '0x0000852600ceb001e08e00bc008be620d60031f2'
+const trueUSDAddress = '0x0000000000085d4780B73119b644AE5ecd22b376'
 const canBurnAdmin = '0x6973526567697374727941646d696e0000000000000000000000000000000000'
-const thkdControllerAddress = '0x0000107d120000E00095Cf06b787a0a900B1F8Bd'
+const controllerAddresss = '0x0000000000075efbee23fe2de1bd0b7690883cc9'
 
 // Registry Attributes
 const canBurnHKD = '0x63616e4275726e484b4400000000000000000000000000000000000000000000'
+const canBurn = '0x63616e4275726e00000000000000000000000000000000000000000000000000'
 
 async function findCanBurn () {
   // transaction arguments
@@ -45,13 +48,13 @@ async function findCanBurn () {
   const contractAt = getContract(wallet)
 
   const Registry = contractAt('Registry', registryProxyAddress)
-  const TrueHKD = contractAt('TimeLockRegistry', trueHKDAddress)
-  const THKDController = contractAt('TokenControllerV2', thkdControllerAddress)
+  const TrueUSD = contractAt('TrueUSD', trueUSDAddress)
+  const TokenControllerV2 = contractAt('TokenControllerV2', controllerAddresss)
 
   // connect to wallet
   const registry = await Registry.connect(wallet)
-  const thkd = await TrueHKD.connect(wallet)
-  const thkdController = await THKDController.connect(wallet)
+  const tusd = await TrueUSD.connect(wallet)
+  const tokenController = await  TokenControllerV2.connect(wallet)
 
   // get balance
   let isCanBurnAdmin = await registry.hasAttribute(wallet.address, canBurnAdmin)
@@ -59,17 +62,72 @@ async function findCanBurn () {
 
   // log events
   if (isCanBurnAdmin) {
-    await logEvents(provider, wallet, Registry, TrueHKD, THKDController)
+    //await logEvents(provider, wallet, Registry, TrueUSD, TokenControllerV2)
+    await logTransfers(provider, wallet, Registry, TrueUSD, TokenControllerV2, canBurnFinal)
   }
-  // await logEvents(provider, wallet, Registry, TrueHKD)
+
 }
 
-async function logEvents (provider, wallet, Registry, TrueHKD, THKDController) {
-  // data object 
+async function logTransfers(provider, wallet, Registry, TrueUSD, TokenControllerV2, list) {
+  console.log('log transfers')
+  let dict = {}
   let data = []
-  // get thkd contract
-  const thkd = await TrueHKD.connect(wallet)
-  const thkdController = await THKDController.connect(wallet)
+  let rawData = []
+
+  // init dictionary for time & amount
+  for (let item of list) {
+    dict[item] = {
+      'block': 0, 
+      'amount': 0
+    }
+  }
+
+  let endBlock = await provider.getBlockNumber()
+  let startBlock = START_BLOCK
+  let searchSize = 100
+  let filterTransfers = TrueUSD.filters.Transfer()
+
+  for (let block = endBlock; block >= startBlock; block -= searchSize) {
+    let transfers = await TrueUSD.queryFilter(filterTransfers, block, block + searchSize)
+    // loop through transfers
+    for (let transfer of transfers) {
+      let to = transfer.args.to
+      if (dict[to] != null) {
+        console.log("redemption address: ", to)
+        // set highest block
+        if (dict[to].block != 0) {
+          dict[to].block = block
+        }
+        // count transfers
+        dict[to].amount = dict[to].amount + 1
+      }
+    }
+  }
+
+  let formatData = []
+  for (let item of list) {
+    formatData.push({
+      who: item,
+      amount: dict[item].amount,
+      block: dict[item].block
+    })
+  }
+
+  await writeToCsv(formatData, 
+    [
+      { id: 'who', title: 'who' },
+      { id: 'amount', title: 'amount' },
+      { id: 'block', title: 'block' },
+    ])
+}
+
+async function logEvents (provider, wallet, Registry, TrueUSD, TokenControllerV2) {
+  // data object 
+  let rawData = []
+  let data = {}
+  // get tusd contract
+  const tusd = await TrueUSD.connect(wallet)
+  const tokenController = await TokenControllerV2.connect(wallet)
 
   console.log("\nlogging events...")
 
@@ -78,46 +136,80 @@ async function logEvents (provider, wallet, Registry, TrueHKD, THKDController) {
 
   // setup filters for interesting events
   let filterAttributeValue = Registry.filters.SetAttribute()
+  let filterTransfers = TrueUSD.filters.Transfer()
 
   // query filters
   let events = await Registry.queryFilter(filterAttributeValue, START_BLOCK, endBlock)
+  // let transfers = await TrueUSD.queryFilter(filterTransfers, START_BLOCK, endBlock)
   
-  console.log("\nregistrations:\n---------------- address ----------------- | amount")
-  
+  console.log("\nregistrations:\n---------------- address ----------------- |  -------------------------- attribute ------------------------------ | value")
+
   // loop through events
   for (let event of events) {
-    // get event data & log
+    // get event rawData & log
     let who = event.args.who
     let attribute = event.args.attribute
     let value = event.args.value
-    if (attribute == canBurnHKD) {
+    if (attribute == canBurn) {
       console.log(who, ", ", attribute, ", ", value.toNumber())
+      data[who] = value.toNumber()
+      rawData.push({
+        who: who,
+        attribute: attribute,
+        value: value.toNumber(),
+        block: event.args.blockNumber
+      })
     }
-    data.push({
-      who: who,
-      attribute: attribute,
-      value: value.toNumber(),
-      txn: event.transactionHash
-    })
+  }
 
-    // console.log(who, ", ", attribute, ", ", value.toNumber())
+  // format data removing any that are set to zero
+  let counter = 0
+  let formatData = []
+  let visited = {}
+  rawData.forEach( (item) => {
+    if (data[item.who] == 1 && !visited[item.who]) {
+      visited[item.who] = true
+      formatData.push(item)
+      counter++
+      console.log(item.who)
+    }
+  })
+  console.log()
+  console.log("\n", counter, " addresses")
+
+  let invalidCount = 0;
+  let invalid = []
+
+  const registry = await Registry.connect(wallet)
+
+  for (let i = 0; i < counter; i++) {
+    let isCanBurn = await registry.hasAttribute(formatData[i].who, canBurn)
+    if (isCanBurn) {
+      console.log("validated ", formatData[i].who)
+    }
+    else {
+      invalid.push(formatData[i])
+      console.log("\n\ninvalid!! ", formatData[i].who, "\n\n")
+    }
   }
 
   console.log("\n")
-  await writeToCsv(data)
-}
-
-async function writeToCsv (data) {
-  console.log("writing to CSV...\n")
-  // format writer object
-  const csvWriter = createObjectCsvWriter({
-    path: 'output/can_burn.csv',
-    header: [
+  await writeToCsv(formatData, 
+    [
       { id: 'who', title: 'who' },
       { id: 'attribute', title: 'attribute' },
       { id: 'value', title: 'value' },
       { id: 'txn', title: 'txn' }
-    ]
+    ])
+}
+
+
+async function writeToCsv (data, header) {
+  console.log("writing to CSV...\n")
+  // format writer object
+  const csvWriter = createObjectCsvWriter({
+    path: 'output/can_burn.csv',
+    header: header
   })
 
   // write to CSV
