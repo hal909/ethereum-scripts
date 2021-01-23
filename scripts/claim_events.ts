@@ -20,7 +20,7 @@ const TRU1000 = parseEther('1000').div(1e10)
 // start block for event logging
 // 10523380 before contract deployed
 // 10646595 second round
-const START_BLOCK = 10796200
+const START_BLOCK = 10523380
 
 async function truFaucet () {
   // transaction arguments
