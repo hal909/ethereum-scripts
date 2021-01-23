@@ -1,0 +1,11 @@
+{
+    "abi": [
+        {
+            "inputs": [],
+            "name": "terminate",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ]
+}
