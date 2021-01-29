@@ -1,8 +1,9 @@
 /**
- * PRIVATE_KEY={private_key} ts-node scripts/transfer_tokens.ts '{network}'
+ * PRIVATE_KEY={private_key} ts-node scripts/transfer_tokens.ts '{network}' {path_to_csv}
  */
 import { ethers, providers, BigNumber } from 'ethers'
 import { getContract, wait } from './utils'
+import fs from 'fs'
 const TOKEN_AMOUNT = '10'
 
 // gas limit, gas price
@@ -36,6 +37,9 @@ async function transferTokens() {
   // tranfers: [string, number]
   const transfers = getTransferArray()
 
+  // parse accounts from csv
+  const addresses = parseData(fs.readFileSync(process.argv[3]).toString())
+
   for (let i = 0; i < transfers.length; i++) {
     let to = transfers[i][0]
     // convert to token precision (will not accept floating point numbers)
@@ -51,6 +55,14 @@ async function transfer(provider, wallet, token, to: string, amount: BigNumber) 
   const txn = await wait(token.transfer(to, amount, txnArgs))
   console.log('transferred ', amount, 'to ', to)
 }
+
+// address, amount
+// TODO parse data correctly
+export const parseData = (text: string): string[] =>
+  text
+    .split(',')
+    .filter((address) => address.length > 0)
+    .map((address) => address.trim())
 
 // store array of [string, number]
 // numbers can only be whole numbers
