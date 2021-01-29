@@ -1,4 +1,4 @@
-import { Wallet, ethers } from 'ethers'
+import { Wallet, ethers, BigNumber } from 'ethers'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 export const getContractJSON = (contractName: string): any => require(`../abi/${contractName}.json`)

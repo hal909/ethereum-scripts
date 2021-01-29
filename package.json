@@ -15,6 +15,7 @@
     "csv-writer": "^1.6.0",
     "eslint": "^7.6.0",
     "ethers": "^5.0.7",
+    "fs": "^0.0.1-security",
     "ts-node": "^8.10.2",
     "typechain": "^2.0.0",
     "typescript": "^3.9.7"
